@@ -1,30 +1,50 @@
 #include <stdio.h>
 #include <device.h>
 #include <vector>
+#include <unistd.h>
 
 int main()
 {
     Freenect::Freenect freenect;
-    BasicFreenectDevice* device;
-	device = &freenect.createDevice<BasicFreenectDevice>(0);
-	device->startVideo();
-    printf( "Started RGB\n" );
-	device->startDepth();
-    printf( "Started depth\n" );
-    std::vector<uint16_t> depth_buffer;
-    std::vector<uint8_t>  rgb_buffer;
-    depth_buffer.resize( 640 * 480 * 4 );
-    rgb_buffer.resize( 640 * 480 * 4 );
+    BasicFreenectDevice** device;
+    unsigned int num_dev = freenect.deviceCount();
+    if( num_dev < 1 )
+    {
+        fprintf( stderr, "No devices connected\n" );
+        return -1;
+    }
+    fprintf( stderr, "Number of devices found:%d\n", num_dev );
+    device = new BasicFreenectDevice*[num_dev];
+    for( int i = 0; i < num_dev; i++ )
+    {
+        device[i] = &freenect.createDevice<BasicFreenectDevice>(i);
+        device[i]->startVideo();
+        device[i]->startDepth();
+        fprintf( stderr, "Started RGB for device %d\n", i );
+        fprintf( stderr, "Started depth for device %d\n", i );
+    }
+
+    uint16_t* depth_buffer = new uint16_t[ 640 * 480 ];
+    uint8_t*  rgb_buffer = new uint8_t[ 640 * 480 * 3 ];
 	while(true)
     {
-        device->updateState();
-        //printf( "rgb_state:  %d\n", device->getRGB( rgb_buffer ) );
-        //printf( "depth_state:%d\n", device->getDepth( depth_buffer ) );
-        //device->getRGB( rgb_buffer );
-        //device->getDepth( depth_buffer );
+        for( int i = 0; i < num_dev; i++ )
+        {
+            device[i]->updateState();
+            bool rgb_state = device[i]->getRGB( rgb_buffer );
+            if( rgb_state )
+                printf( "%d got rgb\n", i );
+            bool depth_state = device[i]->getDepth( depth_buffer );
+            if( depth_state )
+                printf( "%d got depth\n", i );
+        }
+        usleep( 1000 );
     }
-	device->stopVideo();
-	device->stopDepth();
+    for( int i = 0; i < num_dev; i++ )
+    {
+        device[i]->stopVideo();
+        device[i]->stopDepth();
+    }
     printf( "Deinit" );
     return 0;
 }
