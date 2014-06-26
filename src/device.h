@@ -72,7 +72,9 @@ public:
 		Mutex::ScopedLock lock(m_rgb_mutex);
 		if (!m_new_rgb_frame)
 			return false;
-        memcpy( buffer, &m_buffer_video[0], m_buffer_video.size() * sizeof( uint8_t ) );
+        //memcpy( buffer, &m_buffer_video[0], m_buffer_video.size() * sizeof( uint8_t ) );
+        for( int i = 0; i < MED_RES_W * MED_RES_H * 3; i++ )
+            buffer[i] = m_buffer_depth[i];
 		m_new_rgb_frame = false;
 		return true;
 	}
@@ -87,7 +89,9 @@ public:
 		Mutex::ScopedLock lock(m_depth_mutex);
 		if (!m_new_depth_frame)
 			return false;
-        memcpy( buffer, &m_buffer_depth[0], m_buffer_depth.size() * sizeof( uint16_t ) );
+        //memcpy( buffer, &m_buffer_depth[0], m_buffer_depth.size() * sizeof( uint16_t ) );
+        for( int i = 0; i < MED_RES_W * MED_RES_H; i++ )
+            buffer[i] = m_buffer_depth[i];
 		m_new_depth_frame = false;
 		return true;
 	}
