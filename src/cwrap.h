@@ -43,13 +43,9 @@ extern "C"
     bool getDepth( unsigned int devID, uint16_t* buffer )
     { device[devID]->getDepth( buffer ); }
 
-    unsigned int getRGBWidth()
-    { return MED_RES_W; }
-    unsigned int getRGBHeight()
-    { return MED_RES_H; }
+    unsigned int getRGBWidth() { return MED_RES_W; }
+    unsigned int getRGBHeight() { return MED_RES_H; }
 
-    unsigned int getDepthWidth()
-    { return MED_RES_W; }
-    unsigned int getDepthHeight()
-    { return MED_RES_H; }
+    unsigned int getDepthWidth() { return MED_RES_W; }
+    unsigned int getDepthHeight() { return MED_RES_H; }
 }

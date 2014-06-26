@@ -10,30 +10,35 @@ const unsigned int MED_RES_H = 480;
 
 class Mutex 
 {
+private:
+	pthread_mutex_t m_mutex;
 public:
-	Mutex() 
-    { pthread_mutex_init( &m_mutex, NULL ); }
-	void lock() 
-    { pthread_mutex_lock( &m_mutex ); }
-	void unlock() 
-    { pthread_mutex_unlock( &m_mutex ); }
+	Mutex() { pthread_mutex_init( &m_mutex, NULL ); }
+	void lock() { pthread_mutex_lock( &m_mutex ); }
+	void unlock() { pthread_mutex_unlock( &m_mutex ); }
+    ~Mutex() { pthread_mutex_destroy( &m_mutex ); }
 
 	class ScopedLock
 	{
-		Mutex & _mutex;
+    private:
+		Mutex & s_mutex;
 	public:
-		ScopedLock(Mutex & mutex)
-			: _mutex(mutex)
-		{ _mutex.lock(); }
-		~ScopedLock()
-		{ _mutex.unlock(); }
+		ScopedLock(Mutex & mutex): s_mutex(mutex)
+		{ s_mutex.lock(); }
+		~ScopedLock() { s_mutex.unlock(); }
 	};
-private:
-	pthread_mutex_t m_mutex;
 };
 
 class BasicFreenectDevice : public Freenect::FreenectDevice 
 {
+private:
+	std::vector<uint16_t> m_buffer_depth;
+	std::vector<uint8_t> m_buffer_video;
+	Mutex m_rgb_mutex;
+	Mutex m_depth_mutex;
+	bool m_new_rgb_frame;
+	bool m_new_depth_frame;
+
 public:
 	BasicFreenectDevice(freenect_context *_ctx, int _index)
 		: Freenect::FreenectDevice(_ctx, _index), 
@@ -86,12 +91,4 @@ public:
 		m_new_depth_frame = false;
 		return true;
 	}
-
-private:
-	std::vector<uint16_t> m_buffer_depth;
-	std::vector<uint8_t> m_buffer_video;
-	Mutex m_rgb_mutex;
-	Mutex m_depth_mutex;
-	bool m_new_rgb_frame;
-	bool m_new_depth_frame;
 };
